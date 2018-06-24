@@ -17,17 +17,25 @@ class Application(tkinter.ttk.Frame):
         options = dict(sticky=NSEW, padx=0, pady=0)
         text.grid(column=0, row=0, **options)
         text.insert('1.0', 'hello world')
+        text.insert('end', '\nmy name is bob')
+        print(text.get("end-1c linestart", "end"))
+        text.bind("<Return>", callback)
+        adventure = Adventure(text)
         root.mainloop()
 
     def __init__(self, root):
         super().__init__(root)
         self.grid_columnconfigure(0, weight=1)
 
+
+def callback(event):
+    event.widget.insert(event.widget.index(INSERT), "\nReturn")
+
 class BlockyCursorText(Text):
 
     def __init__(self, parent):
         Text.__init__(self, parent, bg='black', fg='green', insertwidth=0,
-                      font=font.Font(family='Courier', size=10), highlightthickness=0)
+                      font=font.Font(family='Courier', size=20), highlightthickness=0)
 
         # initialize the cursor position and the color of the cursor
         self.cursor = '1.0'
@@ -71,7 +79,18 @@ class BlockyCursorText(Text):
 
         self.tag_config('cursorblock', background=self.switch)
 
-        self.after(600, self._blink_cursor)
+        self.after(800, self._blink_cursor)
+
+class Adventure(Text):
+
+    def __init__(self, text_widget):
+        self.text_widget = text_widget
+        self.name = "Player"
+        self.introduce()
+
+    def introduce(self):
+        text = "Hello, %s. What is your name?" % self.name
+        self.text_widget.insert('1.0', text)
 
 if __name__ == '__main__':
     Application.main()
