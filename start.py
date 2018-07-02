@@ -16,11 +16,13 @@ class Application(tkinter.ttk.Frame):
         text = BlockyCursorText(root)
         options = dict(sticky=NSEW, padx=0, pady=0)
         text.grid(column=0, row=0, **options)
-        text.insert('1.0', 'hello world')
-        text.insert('end', '\nmy name is bob')
-        print(text.get("end-1c linestart", "end"))
         text.bind("<Return>", callback)
+        text.bind("<Button-1>", lambda e: "break")
+        # text.bind("<ButtonRelease-1>", lambda event, arg=text: on_mouse_down(arg))
         adventure = Adventure(text)
+        text2 = BlockyCursorText(root)
+        text2.grid(column=0, row=1, **options)
+        text.focus_set()
         root.mainloop()
 
     def __init__(self, root):
@@ -29,7 +31,25 @@ class Application(tkinter.ttk.Frame):
 
 
 def callback(event):
-    event.widget.insert(event.widget.index(INSERT), "\nReturn")
+    input = event.widget.get("end-1c linestart", "end-1c")
+    with open('gamesave.txt', 'a') as f:
+        f.write(input)
+    response = "\nYou entered %s" % input
+    event.widget.insert(event.widget.index(INSERT), response)
+
+# Called before cursor moves?
+def callback2(event):
+    print(event.widget.index('insert'))
+    # event.widget.after(1000, followup(event.widget))
+
+
+def on_mouse_down(text):
+    print(text.index('insert+1c'))
+    print(text.index('end-1c'))
+    if text.index('insert+1c') == text.index('end-1c'):
+        text.mark_set('insert', text.index('insert-1c'))
+    print(text.index('insert+1c'))
+    return "break"
 
 class BlockyCursorText(Text):
 
@@ -53,6 +73,7 @@ class BlockyCursorText(Text):
         current_index = self.index('insert')
 
         if self.cursor != current_index:  # if the insertcursor moved
+
             self.cursor = current_index   # store the new index
             self.tag_delete('cursorblock')# delete the cursorblock tag
 
@@ -65,6 +86,9 @@ class BlockyCursorText(Text):
 
             self.tag_add('cursorblock', start, end) # add the tag back in
             self.mark_set('insert', self.cursor)    # move the insertcursor
+
+        if self.index('insert+1c') == self.index('end-1c'):
+            self.mark_set('insert', self.index('insert-1c'))
 
         self.after(15, self._place_cursor)
 
@@ -80,6 +104,7 @@ class BlockyCursorText(Text):
         self.tag_config('cursorblock', background=self.switch)
 
         self.after(800, self._blink_cursor)
+        
 
 class Adventure(Text):
 
@@ -89,8 +114,9 @@ class Adventure(Text):
         self.introduce()
 
     def introduce(self):
-        text = "Hello, %s. What is your name?" % self.name
+        text = "Hello, %s. What is your name?\n\n" % self.name
         self.text_widget.insert('1.0', text)
+        self.text_widget.delete(self.text_widget.index(INSERT), 'end')
 
 if __name__ == '__main__':
     Application.main()
